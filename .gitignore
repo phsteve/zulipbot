@@ -1,0 +1,4 @@
+*.pyc
+zulip/
+zulip-0.2.2/
+subscribe.py
