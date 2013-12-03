@@ -24,11 +24,13 @@ client = zulip.Client()
 resp = client.do_api_query({'anchor': '13377010',
                             'num_before': '100',
                             'num_after': '0',
-                            # 'narrow': [['sender', 'katz.stephenj@gmail.com']]
+                            'narrow': [['sender', 'katz.stephenj@gmail.com']]
                             },
                            'https://zulip.com/api/v1/messages',
                            method='GET')
 
 
 msgs = [msg['content'] for msg in resp['messages']]
-#  
+
+import pdb
+pdb.set_trace()
