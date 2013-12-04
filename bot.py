@@ -2,6 +2,7 @@ import zulip
 import re
 import sys
 
+
 import text_gen
 
 SUBSCRIPTIONS = set(['455 Broadway', 'Broadcasts', 'Iron Blogger', 'OSS at HS',
@@ -27,6 +28,7 @@ SUBSCRIPTIONS = set(['455 Broadway', 'Broadcasts', 'Iron Blogger', 'OSS at HS',
                  'spot-the-fail', 'stanford algos coursera', 'systems papers reading group',
                  'tapl', 'tech policy', 'test-stream', 'tictax', 'ttrpg', 'videogames',
                  'weekend-retreat', 'work', 'working on'])
+SUBSCRIPTIONS_DICT = dict((item.lower(), item) for item in SUBSCRIPTIONS)
 
 def extract_messages(response):
     # import pdb
@@ -36,7 +38,14 @@ def extract_messages(response):
 def strip_html_and_tokenize(lst):
     """Takes a list of strings possibly with HTML tags,
     returns a list of word tokens with HTML stripped"""
-    return re.sub('<[^<]+?>', ' ', ' '.join(lst)).replace('\n', ' ').split(' ')
+    #strip punctuation
+    #re-render escaped symbols
+    #preserve <code> blocks
+    stripped = re.sub('<code>.*</code>', ' ', ' '.join(lst), flags=re.DOTALL)
+    stripped = re.sub('<div class="codehilite">.*</div>', ' ', stripped, flags=re.DOTALL)
+    stripped = re.sub('<a.*</a>', ' ', stripped, flags=re.DOTALL)
+    stripped = re.sub('<[^<]+?>', ' ', stripped)
+    return stripped.replace('\n', ' ').split(' ')
 
 def get_messages(anchor, num_before, streams, num_after=0):
     messages = []
@@ -50,7 +59,7 @@ def get_messages(anchor, num_before, streams, num_after=0):
 
 def respond(message): 
     if message['type'] == 'private' and message['sender_email'] != 'katzbot-bot@students.hackerschool.com':
-        streams = set(word.strip() for word in message['content'].split(','))
+        streams = set(SUBSCRIPTIONS_DICT[word.strip().lower()] for word in message['content'].split(','))
         msg_id = message['id']
         sender = message['sender_email']
         fails = streams - SUBSCRIPTIONS
@@ -61,7 +70,7 @@ def respond(message):
                                 'to': sender,
                                 'content': 'Sorry, the following streams were not recognized: %r' %fails
                                 })
-        messages = get_messages(msg_id, 200, wins)
+        messages = get_messages(msg_id, 400, wins)
 
         client.send_message({
                             'type': 'private',
@@ -70,6 +79,17 @@ def respond(message):
                             'content': text_gen.gen(strip_html_and_tokenize(messages))
                             })
 
+def echo(message):
+    print message
+    anchor = message['id']
+    print client.do_api_query({'anchor':anchor, 'num_before': 0, 'num_after': 0},
+                                          'https://zulip.com/api/v1/messages',
+                                          method='GET'
+                                        )
+    # if message['type'] == 'private' and message['sender_email'] != 'katzbot-bot@students.hackerschool.com':
+    #     print message
+
 if __name__ == '__main__':
     client = zulip.Client()
     client.call_on_each_message(respond)
+    # print get_messages(, 10, ['test-bot'])

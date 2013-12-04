@@ -1,5 +1,6 @@
 import nltk
 import re
+from HTMLParser import HTMLParser
 
 class BigramText(nltk.Text):
     def generate(self, length=100):
@@ -24,6 +25,7 @@ def gen(tokens):
     words = [word for word in tokens if word]
     text = BigramText(words)
     result = ' '.join(text.generate(100))
-    return result
+    r = HTMLParser()
+    return r.unescape(result)
 
 
