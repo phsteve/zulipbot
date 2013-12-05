@@ -24,7 +24,8 @@ def gen(tokens):
     print 'generating'
     words = [word for word in tokens if word]
     text = BigramText(words)
-    result = ' '.join(text.generate(100))
+    # text = nltk.Text(words)
+    result = ' '.join(text.generate())
     r = HTMLParser()
     return r.unescape(result)
 

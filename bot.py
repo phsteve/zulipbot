@@ -59,7 +59,8 @@ def get_messages(anchor, num_before, streams, num_after=0):
 
 def respond(message): 
     if message['type'] == 'private' and message['sender_email'] != 'katzbot-bot@students.hackerschool.com':
-        streams = set(SUBSCRIPTIONS_DICT[word.strip().lower()] for word in message['content'].split(','))
+
+        streams = set(SUBSCRIPTIONS_DICT.get(word.strip().lower(), word) for word in message['content'].split(','))
         msg_id = message['id']
         sender = message['sender_email']
         fails = streams - SUBSCRIPTIONS
@@ -68,16 +69,17 @@ def respond(message):
             client.send_message({
                                 'type': 'private',
                                 'to': sender,
-                                'content': 'Sorry, the following streams were not recognized: %r' %fails
+                                'content': 'Sorry, the following streams were not recognized: %s' %(', '.join(fails))
                                 })
         messages = get_messages(msg_id, 400, wins)
 
-        client.send_message({
-                            'type': 'private',
-                            'to': sender,
-                            'subject': 'This is what you sound like',
-                            'content': text_gen.gen(strip_html_and_tokenize(messages))
-                            })
+        if wins:
+            client.send_message({
+                                'type': 'private',
+                                'to': sender,
+                                'subject': 'This is what you sound like',
+                                'content': text_gen.gen(strip_html_and_tokenize(messages))
+                                })
 
 def echo(message):
     print message
