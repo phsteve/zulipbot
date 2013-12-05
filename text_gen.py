@@ -27,6 +27,11 @@ def gen(tokens):
     # text = nltk.Text(words)
     result = ' '.join(text.generate())
     r = HTMLParser()
-    return r.unescape(result)
+    result = r.unescape(result)
+    for punct in '.:"!,':
+        #could be more efficient!
+        result = result.replace(' %s'%punct, punct)
+
+    return result
 
 

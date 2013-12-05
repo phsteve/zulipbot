@@ -1,6 +1,7 @@
 import zulip
 import re
 import sys
+import nltk
 
 
 import text_gen
@@ -35,9 +36,12 @@ def extract_messages(response):
     # pdb.set_trace()
     return [msg['content'] for msg in response['messages'] if msg['content'] if msg['type'] != 'private' and msg['display_recipient'] != 'test-bot']
 
-def strip_html_and_tokenize(lst):
+def stringify(lst):
+    return ' '.join(lst)
+
+def strip_html(lst):
     """Takes a list of strings possibly with HTML tags,
-    returns a list of word tokens with HTML stripped"""
+    returns a concatenated string with HTML stripped"""
     #strip punctuation
     #re-render escaped symbols
     #preserve <code> blocks
@@ -45,7 +49,12 @@ def strip_html_and_tokenize(lst):
     stripped = re.sub('<div class="codehilite">.*</div>', ' ', stripped, flags=re.DOTALL)
     stripped = re.sub('<a.*</a>', ' ', stripped, flags=re.DOTALL)
     stripped = re.sub('<[^<]+?>', ' ', stripped)
-    return stripped.replace('\n', ' ').split(' ')
+    return stripped
+
+def make_tokens(s):
+    sentences = nltk.sent_tokenize(s)
+    res = [word for sent in sentences for word in nltk.word_tokenize(sent)]
+    return res
 
 def get_messages(anchor, num_before, streams, num_after=0):
     messages = []
@@ -78,7 +87,7 @@ def respond(message):
                                 'type': 'private',
                                 'to': sender,
                                 'subject': 'This is what you sound like',
-                                'content': text_gen.gen(strip_html_and_tokenize(messages))
+                                'content': text_gen.gen(make_tokens(strip_html(messages)))
                                 })
 
 def echo(message):
