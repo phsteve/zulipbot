@@ -1,6 +1,6 @@
 PyYAML==3.10
 beautifulsoup4==4.3.2
-ipython==1.1.0
+ipython==7.16.3
 nltk==2.0.4
 requests==2.0.1
 simplejson==3.3.1
